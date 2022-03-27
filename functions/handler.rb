@@ -1,6 +1,9 @@
 require "json"
 require "date"
 require "holiday_japan"
+require 'standard_assert'
+
+include ::Assert
 
 def lambda_handler(event:, context:)
   notify_holiday(Date.new(2019, 12, 31))
@@ -27,13 +30,13 @@ def notify_holidays(recent_holidays, notify_date)
   require_notify_today_and_tomorrow_holidays = !todays_holiday.nil? || !tomorrows_holiday.nil?
   notify_today_and_tomorrow_holidays(todays_holiday, tomorrows_holiday) if require_notify_today_and_tomorrow_holidays
   
-  notify_recent_holidays(recent_holidays) # if notify_date.monday?
+  notify_recent_holidays(recent_holidays) if notify_date.monday?
 end
 
 private
 
 def notify_today_and_tomorrow_holidays(todays_holiday, tomorrows_holiday)
-  # assert(!todays_holiday.nil? || !tomorrows_holiday.nil?)
+  assert(!todays_holiday.nil? || !tomorrows_holiday.nil?)
   ja_message = ""
   en_message = ""
   
@@ -55,7 +58,7 @@ end
 JA_DAYS_OF_WEEK = ["日", "月", "火", "水", "木", "金", "土"]
 EN_DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 def notify_recent_holidays(recent_holidays)
-  # assert(!recent_holidays.empty?)
+  assert(!recent_holidays.empty?)
   
   ja_holiday_messages = []
   en_holiday_messages = []
