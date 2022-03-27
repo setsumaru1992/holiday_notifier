@@ -1,0 +1,22 @@
+# ★このファイルでのデプロイコマンド x分くらいかかる
+# date && serverless deploy --config serverless_building_ruby_lib_layer.yml && date
+
+# app and org for use with dashboard.serverless.com
+app: holiday-notifier
+service: holiday-notifier-ruby-lib
+# org: your-org-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: ruby2.7
+  lambdaHashingVersion: 20201221
+  deploymentBucket:
+    name: serverless-framework-functions
+  region: ap-northeast-1
+
+plugins:
+  - serverless-ruby-layer # https://www.serverless.com/plugins/serverless-ruby-layer

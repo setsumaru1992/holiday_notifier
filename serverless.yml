@@ -1,10 +1,10 @@
-service: holiday-notifier
 app: holiday-notifier
+service: holiday-notifier
 #org: your-org-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 provider:
   name: aws
@@ -13,6 +13,11 @@ provider:
   deploymentBucket:
     name: serverless-framework-functions
   region: ap-northeast-1
+  layers:
+    - ${self:custom.environment.layers.ruby_bundle}
+
+custom: 
+  environment: ${file(./.env.yml)}
 
 # you can overwrite defaults here
 #  stage: dev
@@ -50,7 +55,7 @@ provider:
 
 functions:
   notify_holiday:
-    handler: handler.notify_holiday
+    handler: handler.lambda_handler
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -102,3 +107,6 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+plugins:
+  - serverless-ruby-layer
