@@ -7,6 +7,9 @@ describe "/functions/handler" do
   end
 
   describe ".notify_holiday" do
+
+    # HACK: 余裕があればholiday_japanのテストも含んだ、notify_holidayを一気通貫で通したときの通知文言をテストする総合テストを用意
+
     before do    
       # NOTE: 結合テストは副作用がわかればいいのでやりすぎ感ある。残らない途中式をテストしてしまっている。
       # が、内情を知っている身としてはこれがミニマムなテストなのでこれを採用。妙案が出たら改善
