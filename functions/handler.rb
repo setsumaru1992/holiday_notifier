@@ -6,73 +6,82 @@ require 'standard_assert'
 include ::Assert
 
 def lambda_handler(event:, context:)
-  notify_holiday(Date.new(2019, 12, 31))
+  HolidayNotifier.new.notify_holiday # (Date.new(2019, 12, 31))
   { statusCode: 200, body: JSON.generate("success") }
 end
 
-def notify_holiday(notify_date = Date.today)
-  recent_holidays = fetch_recent_holidays(notify_date)
-  notify_holidays(recent_holidays, notify_date) unless recent_holidays.empty?
-end
+class HolidayNotifier # テストでスパイさせるために無理やりクラス化。他の方法が見つかれば解除
+  class << self
+    def notify_holiday(notify_date = Date.today)
+      recent_holidays = fetch_recent_holidays(notify_date)
 
-def fetch_recent_holidays(notify_date, recent_days: 14)
-    p HolidayJapan.between("2020-1-1","2020-1-31")
-    {
-        Date.new(2020, 1, 1) => "元日",
-        Date.new(2020, 1, 13) => "成人の日",
-    }
-end
+      notify_today_and_tomorrow_holidays(recent_holidays, notify_date)
+      notify_recent_holidays(recent_holidays) if notify_date.monday?
+    end
+    
+    def fetch_recent_holidays(notify_date, recent_days: 14)
+      p HolidayJapan.between("2020-1-1","2020-1-31")
+      {
+          Date.new(2020, 1, 1) => "元日",
+          Date.new(2020, 1, 13) => "成人の日",
+      }
+    end
+    
+    # private
+    
+    def notify_today_and_tomorrow_holidays(recent_holidays, notify_date)
+      todays_holiday = recent_holidays.select { |holiday_date, _| holiday_date == notify_date }.values.first
+      tomorrows_holiday = recent_holidays.select { |holiday_date, _| holiday_date == notify_date.next_day }.values.first
+      
+      require_notify = !todays_holiday.nil? || !tomorrows_holiday.nil?
+      return unless require_notify
 
-def notify_holidays(recent_holidays, notify_date)
-  todays_holiday = recent_holidays.select { |holiday_date, _| holiday_date == notify_date }.values.first
-  tomorrows_holiday = recent_holidays.select { |holiday_date, _| holiday_date == notify_date.next_day }.values.first
-  
-  require_notify_today_and_tomorrow_holidays = !todays_holiday.nil? || !tomorrows_holiday.nil?
-  notify_today_and_tomorrow_holidays(todays_holiday, tomorrows_holiday) if require_notify_today_and_tomorrow_holidays
-  
-  notify_recent_holidays(recent_holidays) if notify_date.monday?
-end
+      message = create_today_and_tomorrow_holiday_message(todays_holiday, tomorrows_holiday)
+      notify(message)
+    end
 
-private
+    def create_today_and_tomorrow_holiday_message(todays_holiday, tomorrows_holiday)
+      assert(!todays_holiday.nil? || !tomorrows_holiday.nil?)
+      ja_message = ""
+      en_message = ""
+      
+      if !todays_holiday.nil?
+         ja_message << "今日は日本の祝日です（#{todays_holiday}）。\n"
+         en_message << "Today is a Japanese holiday.\n"
+      end
+      
+      if !tomorrows_holiday.nil?
+         ja_message << "明日は日本の祝日です（#{tomorrows_holiday}）。\n"
+         en_message << "Tomorrow is a Japanese holiday.\n"
+      end
+      
+      "#{ja_message}\n#{en_message}"
+    end
+    
+    JA_DAYS_OF_WEEK = ["日", "月", "火", "水", "木", "金", "土"]
+    EN_DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    def notify_recent_holidays(recent_holidays)
+      return if recent_holidays.empty?
+      
+      message = create_recent_holidays(recent_holidays)
+      notify(message)
+    end 
 
-def notify_today_and_tomorrow_holidays(todays_holiday, tomorrows_holiday)
-  assert(!todays_holiday.nil? || !tomorrows_holiday.nil?)
-  ja_message = ""
-  en_message = ""
-  
-  if !todays_holiday.nil?
-     ja_message << "今日は日本の祝日です（#{todays_holiday}）。\n"
-     en_message << "Today is a Japanese holiday.\n"
+    def create_recent_holidays(recent_holidays)
+      ja_holiday_messages = []
+      en_holiday_messages = []
+      recent_holidays.each do |holiday_date, holiday_name|
+          ja_holiday_messages << "#{holiday_date}(#{JA_DAYS_OF_WEEK[holiday_date.wday]}) #{holiday_name}"
+          en_holiday_messages << "#{holiday_date}(#{EN_DAYS_OF_WEEK[holiday_date.wday]})"
+      end
+      
+     "今週の祝日\n#{ja_holiday_messages.join(", ")}\n\nJapanese holidays\n#{en_holiday_messages.join(", ")}"
+    end
+    
+    def notify(message)
+      p message
+    end
   end
-  
-  if !tomorrows_holiday.nil?
-     ja_message << "明日は日本の祝日です（#{tomorrows_holiday}）。\n"
-     en_message << "Tomorrow is a Japanese holiday.\n"
-  end
-  
-  message = "#{ja_message}\n#{en_message}"
-  
-  notify(message)
-end
-
-JA_DAYS_OF_WEEK = ["日", "月", "火", "水", "木", "金", "土"]
-EN_DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-def notify_recent_holidays(recent_holidays)
-  assert(!recent_holidays.empty?)
-  
-  ja_holiday_messages = []
-  en_holiday_messages = []
-  recent_holidays.each do |holiday_date, holiday_name|
-      ja_holiday_messages << "#{holiday_date}(#{JA_DAYS_OF_WEEK[holiday_date.wday]}) #{holiday_name}"
-      en_holiday_messages << "#{holiday_date}(#{EN_DAYS_OF_WEEK[holiday_date.wday]})"
-  end
-  
-  message = "今週の祝日\n#{ja_holiday_messages.join(", ")}\n\nJapanese holidays\n#{en_holiday_messages.join(", ")}"
-  notify(message)
-end 
-
-def notify(message)
-  p message
 end
 
 # 祝日メモ
@@ -96,5 +105,5 @@ end
 #     #<Date: 2020-11-23 ((2459177j,0s,0n),+0s,2299161j)>=>"勤労感謝の日"}
 
 if __FILE__ == $0
-  notify_holiday(Date.new(2019, 12, 31))
+  HolidayNotifier.notify_holiday(Date.new(2019, 12, 31))
 end
