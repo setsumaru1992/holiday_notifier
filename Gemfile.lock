@@ -13,14 +13,11 @@ GEM
     rspec-expectations (3.11.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.11.0)
-    rspec-mocks (3.11.0)
+    rspec-mocks (3.11.1)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.11.0)
     rspec-support (3.11.0)
     slack-notifier (2.4.0)
-    spring (4.0.0)
-    spring-commands-rspec (1.0.4)
-      spring (>= 0.9.1)
     standard_assert (0.3.0)
       minitest (>= 5.0)
 
@@ -31,11 +28,10 @@ DEPENDENCIES
   holiday_japan
   rspec
   slack-notifier
-  spring-commands-rspec
   standard_assert
 
 RUBY VERSION
-   ruby 2.7.4p191
+   ruby 2.7.0p0
 
 BUNDLED WITH
-   2.1.4
+   2.1.2

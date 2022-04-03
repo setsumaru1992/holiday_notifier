@@ -1,18 +1,17 @@
-require "json"
 require "date"
 require "holiday_japan"
-require 'standard_assert'
+require "standard_assert"
+require "slack-notifier"
 
 include ::Assert
 
-def lambda_handler(event:, context:)
-  HolidayNotifier.new.notify_holiday
-  { statusCode: 200, body: JSON.generate("success") }
-end
+# ローカルでのスクリプト実行時は環境変数セット export WEBHOOK_URL=https://xxx.xx
+SLACK = Slack::Notifier.new(ENV["WEBHOOK_URL"])
 
 class HolidayNotifier # テストでスパイさせるために無理やりクラス化。他の方法が見つかれば解除
   class << self
     def notify_holiday(notify_date = Date.today)
+      notify("デバッグ: 定期実行通知")
       recent_holidays = fetch_recent_holidays(notify_date)
 
       notify_today_and_tomorrow_holidays(recent_holidays, notify_date)
@@ -42,12 +41,12 @@ class HolidayNotifier # テストでスパイさせるために無理やりク�
       en_message = ""
       
       if !todays_holiday.nil?
-         ja_message << "今日は日本の祝日です（#{todays_holiday}）。\n"
+         ja_message << "今日は日本の祝日（#{todays_holiday}）です\n"
          en_message << "Today is a Japanese holiday.\n"
       end
       
       if !tomorrows_holiday.nil?
-         ja_message << "明日は日本の祝日です（#{tomorrows_holiday}）。\n"
+         ja_message << "明日は日本の祝日（#{tomorrows_holiday}）です\n"
          en_message << "Tomorrow is a Japanese holiday.\n"
       end
       
@@ -75,11 +74,12 @@ class HolidayNotifier # テストでスパイさせるために無理やりク�
     end
     
     def notify(message)
-      p message
+      SLACK.ping(message)
     end
   end
 end
 
+DATE_OF_MONDAY_WITH_TOMMOROW_HOLIDAY = Date.new(2021, 5, 3)
 if __FILE__ == $0
-  HolidayNotifier.notify_holiday(Date.new(2022, 3, 20))
+  HolidayNotifier.notify_holiday(DATE_OF_MONDAY_WITH_TOMMOROW_HOLIDAY)
 end

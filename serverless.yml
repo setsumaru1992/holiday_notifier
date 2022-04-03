@@ -6,6 +6,11 @@ service: holiday-notifier
 # Check out our docs for more details
 frameworkVersion: '3'
 
+
+plugins:
+  # vender/bundleのレイヤを分けられると思ってたけど、分けるとrequireで使えなかったから、毎回bundle install入るけど仕方ない
+  - serverless-ruby-layer
+
 provider:
   name: aws
   runtime: ruby2.7
@@ -13,8 +18,10 @@ provider:
   deploymentBucket:
     name: serverless-framework-functions
   region: ap-northeast-1
-  layers:
-    - ${self:custom.environment.layers.ruby_bundle}
+  environment:
+    WEBHOOK_URL: ${self:custom.environment.slack.webhook.prod}
+  # layers:
+  #   - ${self:custom.environment.layers.ruby_bundle}
 
 custom: 
   environment: ${file(./.env.yml)}
@@ -55,7 +62,7 @@ custom:
 
 functions:
   notify_holiday:
-    handler: ./functions/handler.lambda_handler
+    handler: handler.lambda_handler
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -107,6 +114,3 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
-
-plugins:
-  - serverless-ruby-layer
