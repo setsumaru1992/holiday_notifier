@@ -11,7 +11,6 @@ SLACK = Slack::Notifier.new(ENV["WEBHOOK_URL"])
 class HolidayNotifier # テストでスパイさせるために無理やりクラス化。他の方法が見つかれば解除
   class << self
     def notify_holiday(notify_date = Date.today)
-      notify("デバッグ: 定期実行通知")
       recent_holidays = fetch_recent_holidays(notify_date)
 
       notify_today_and_tomorrow_holidays(recent_holidays, notify_date)

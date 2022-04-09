@@ -20,8 +20,6 @@ provider:
   region: ap-northeast-1
   environment:
     WEBHOOK_URL: ${self:custom.environment.slack.webhook.prod}
-  # layers:
-  #   - ${self:custom.environment.layers.ruby_bundle}
 
 custom: 
   environment: ${file(./.env.yml)}
