@@ -56,3 +56,4 @@ build-iPhoneSimulator/
 node_modules
 
 .env.yml
+.idea

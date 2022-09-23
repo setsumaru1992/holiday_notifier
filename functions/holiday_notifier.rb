@@ -25,13 +25,24 @@ class HolidayNotifier # テストでスパイさせるために無理やりク�
     
     def notify_today_and_tomorrow_holidays(recent_holidays, notify_date)
       todays_holiday = recent_holidays.select { |holiday_date, _| holiday_date == notify_date }.values.first
-      tomorrows_holiday = recent_holidays.select { |holiday_date, _| holiday_date == notify_date.next_day }.values.first
+      tomorrows_holiday = recent_holidays.select { |holiday_date, _| holiday_date == next_weekday(notify_date) }.values.first
       
       require_notify = !todays_holiday.nil? || !tomorrows_holiday.nil?
       return unless require_notify
 
       message = create_today_and_tomorrow_holiday_message(todays_holiday, tomorrows_holiday)
       notify(message)
+    end
+
+    def next_weekday(target_date)
+      next_day = target_date.next_day
+      if (1..5).include?(next_day.wday)
+        return next_day
+      elsif next_day.wday == 6
+        return next_day.next_day(2)
+      elsif next_day.wday == 0
+        return next_day.next_day
+      end
     end
 
     def create_today_and_tomorrow_holiday_message(todays_holiday, tomorrows_holiday)
@@ -51,17 +62,17 @@ class HolidayNotifier # テストでスパイさせるために無理やりク�
       
       "#{ja_message}\n#{en_message}"
     end
-    
+
+    def notify_recent_holidays(recent_holidays)
+      assert(!recent_holidays.empty?)
+      
+      message = create_recent_holidays_message(recent_holidays)
+      notify(message)
+    end
+
     JA_DAYS_OF_WEEK = ["日", "月", "火", "水", "木", "金", "土"]
     EN_DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    def notify_recent_holidays(recent_holidays)
-      return if recent_holidays.empty?
-      
-      message = create_recent_holidays(recent_holidays)
-      notify(message)
-    end 
-
-    def create_recent_holidays(recent_holidays)
+    def create_recent_holidays_message(recent_holidays)
       ja_holiday_messages = []
       en_holiday_messages = []
       recent_holidays.each do |holiday_date, holiday_name|

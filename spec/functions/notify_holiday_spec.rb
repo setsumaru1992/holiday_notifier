@@ -1,5 +1,5 @@
 require "rspec"
-require_relative "../../functions/handler"
+require_relative "../../functions/holiday_notifier"
 
 describe "/functions/handler" do
   before do
@@ -56,7 +56,7 @@ describe "/functions/handler" do
     context "when there is a holiday today, " do
       let(:notify_date) { Date.new(2020, 1, 13) }
       let(:recent_holidays) { { Date.new(2020, 1, 13) => "成人の日", } }
-      it "should not be notified" do
+      it "should be notified" do
         expect(HolidayNotifier).to have_received(:notify)
       end
     end
@@ -64,7 +64,7 @@ describe "/functions/handler" do
     context "when there is a holiday tommorow, " do
       let(:notify_date) { Date.new(2020, 1, 12) }
       let(:recent_holidays) { { Date.new(2020, 1, 13) => "成人の日", } }
-      it "should not be notified" do
+      it "should be notified" do
         expect(HolidayNotifier).to have_received(:notify)
       end
     end
@@ -77,7 +77,15 @@ describe "/functions/handler" do
           Date.new(2020, 1, 14) => "成人人人の日",
         }
       end
-      it "should not be notified" do
+      it "should be notified" do
+        expect(HolidayNotifier).to have_received(:notify)
+      end
+    end
+
+    context "when there is a holiday next weekday, " do
+      let(:notify_date) { Date.new(2020, 1, 10) }
+      let(:recent_holidays) { { Date.new(2020, 1, 13) => "成人の日", } }
+      it "should be notified" do
         expect(HolidayNotifier).to have_received(:notify)
       end
     end
@@ -88,12 +96,13 @@ describe "/functions/handler" do
       HolidayNotifier.notify_recent_holidays(recent_holidays)
     end
 
-    context "when there is no recent holiday, " do
-      let(:recent_holidays) { {} }
-      it "should not be notified" do
-        expect(HolidayNotifier).not_to have_received(:notify)
-      end
-    end
+    # assertiionを挟んだので不要。assertのテストをしようとしたらbeforeで起きる例外を検知できなかった
+    # context "when there is no recent holiday, " do
+    #   let(:recent_holidays) { {} }
+    #   it "should raise AssertionError" do
+    #     expect{HolidayNotifier}.to raise_error(AssertionError)
+    #   end
+    # end
 
     context "when there is some recent holiday, " do
       let(:recent_holidays) { { Date.new(2020, 1, 13) => "成人の日", } }
