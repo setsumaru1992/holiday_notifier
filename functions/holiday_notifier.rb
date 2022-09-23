@@ -69,7 +69,7 @@ class HolidayNotifier # テストでスパイさせるために無理やりク�
           en_holiday_messages << "#{holiday_date}(#{EN_DAYS_OF_WEEK[holiday_date.wday]})"
       end
       
-     "今週の祝日\n#{ja_holiday_messages.join(", ")}\n\nJapanese holidays\n#{en_holiday_messages.join(", ")}"
+     "[今週・来週の祝日]\n#{ja_holiday_messages.join("\n")}\n\n[Japanese holidays]\n#{en_holiday_messages.join("\n")}"
     end
     
     def notify(message)
